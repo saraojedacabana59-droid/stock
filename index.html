@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stock SF">
+<title>Consulta de stock · SF-SERVISOFT</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icono-192.png">
+<link rel="apple-touch-icon" href="icono-192.png">
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: #0f172a; color: #e5edf5; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  body { min-height: 100vh; padding-bottom: env(safe-area-inset-bottom); }
+  .cab { position: sticky; top: 0; z-index: 5; background: #111c33; border-bottom: 1px solid #1e2b45; padding: 10px 14px; }
+  .fila { display: flex; align-items: center; gap: 10px; }
+  .cab img { width: 34px; height: 34px; border-radius: 9px; }
+  .t { font-weight: 800; font-size: 16px; line-height: 1.1; }
+  .u { font-size: 12px; color: #93a4bb; }
+  .salir { margin-left: auto; background: none; border: 1px solid #2a3a58; color: #93a4bb; border-radius: 10px; padding: 6px 10px; font-size: 13px; }
+  .buscar { margin-top: 10px; position: relative; }
+  .buscar input { width: 100%; padding: 13px 40px 13px 14px; border-radius: 12px; border: 1px solid #2a3a58; background: #0b1426; color: #fff; font-size: 16px; }
+  .buscar button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: none; border: 0; color: #93a4bb; font-size: 22px; padding: 4px 8px; }
+  .filtros { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; }
+  .chip { flex: 0 0 auto; border: 1px solid #2a3a58; background: #0b1426; color: #a9bdd8; border-radius: 999px; padding: 6px 12px; font-size: 13px; }
+  .chip.on { background: #2563eb; border-color: #2563eb; color: #fff; }
+  .info { margin: 10px 14px 0; font-size: 12.5px; color: #93a4bb; }
+  .lista { list-style: none; margin: 8px 0 24px; padding: 0 14px; }
+  .item { display: flex; gap: 10px; align-items: center; padding: 12px 12px; margin-bottom: 8px; border-radius: 14px; background: #111c33; border: 1px solid #1e2b45; }
+  .item .n { font-weight: 700; font-size: 15.5px; line-height: 1.2; word-break: break-word; }
+  .item .d { font-size: 12px; color: #8a9bb3; margin-top: 3px; }
+  .item .der { margin-left: auto; text-align: right; flex: 0 0 auto; }
+  .precio { font-weight: 800; font-size: 16.5px; white-space: nowrap; }
+  .stock { display: inline-block; margin-top: 4px; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .s-ok { background: #0b3b2e; color: #7ef0c1; }
+  .s-bajo { background: #3b2a0b; color: #ffd27a; }
+  .s-no { background: #3b0b12; color: #ff9aa5; }
+  .vacio { text-align: center; color: #6f819b; padding: 40px 10px; }
+  .login { max-width: 380px; margin: 0 auto; padding: 48px 20px; text-align: center; }
+  .login img { width: 84px; height: 84px; border-radius: 20px; }
+  .login h1 { font-size: 21px; margin: 14px 0 4px; }
+  .login p { color: #93a4bb; font-size: 14px; margin: 0 0 18px; }
+  .login input[type=password] { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #2a3a58; background: #0b1426; color: #fff; font-size: 17px; text-align: center; }
+  .btn { width: 100%; margin-top: 12px; border: 0; border-radius: 12px; padding: 14px; font-size: 16px; font-weight: 700; background: #16a34a; color: #fff; }
+  .btn:disabled { opacity: .6; }
+  .recordar { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 12px; color: #a9bdd8; font-size: 14px; }
+  .error { color: #ff9aa5; margin-top: 10px; min-height: 20px; font-size: 14px; }
+    .oculto { display: none !important; }
+  .aviso { margin: 10px 14px 0; padding: 8px 12px; border-radius: 10px; font-size: 13px; display: flex; gap: 8px; align-items: center; }
+  .aviso.off { background: #3b2a0b; color: #ffd27a; }
+  .aviso.nuevo { background: #0b3b2e; color: #7ef0c1; }
+  .wa { margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 700; background: #16a34a; color: #fff; }
+  .item.hay { cursor: pointer; }
+  .item.sel { border-color: #22c55e; background: #0f2a22; }
+  .marca { flex: 0 0 auto; width: 22px; height: 22px; border-radius: 7px; border: 2px solid #2a3a58; display: flex; align-items: center; justify-content: center; font-size: 14px; color: transparent; }
+  .item.sel .marca { background: #22c55e; border-color: #22c55e; color: #fff; }
+  .barra-wa { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 8; display: flex; gap: 8px; }
+  .barra-wa .enviar { flex: 1; border: 0; border-radius: 14px; padding: 14px; font-size: 16px; font-weight: 800; background: #16a34a; color: #fff; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+  .barra-wa .limpiar { border: 0; border-radius: 14px; padding: 14px 16px; font-size: 15px; font-weight: 700; background: #1e2b45; color: #cfe0f5; box-shadow: 0 8px 24px rgba(0,0,0,.45); }
+  .ayuda-wa { margin: 6px 14px 0; font-size: 12px; color: #7f93ad; }
+  .instalar { margin: 10px 14px 0; width: calc(100% - 28px); border: 0; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 700; background: #2563eb; color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- CONTRASEÑA -->
+<div class="login" id="pantallaLogin">
+  <img src="icono-192.png" alt="">
+  <h1>Consulta de stock</h1>
+  <p>Precios y stock del negocio. Escribí la contraseña de la consulta.</p>
+  <form id="formClave" autocomplete="on">
+    <input type="password" id="clave" placeholder="Contraseña" autocomplete="current-password" required>
+    <label class="recordar"><input type="checkbox" id="recordar" checked> Recordar en este celular</label>
+    <button class="btn" id="btnEntrar" type="submit">Ver productos</button>
+    <div class="error" id="error" role="alert"></div>
+  </form>
+</div>
+
+<!-- CONSULTA -->
+<div id="pantallaDatos" class="oculto">
+  <div class="cab">
+    <div class="fila">
+      <img src="icono-192.png" alt="">
+      <div>
+        <div class="t" id="empresa">Mi negocio</div>
+        <div class="u" id="actualizado">—</div>
+      </div>
+      <button class="salir" type="button" onclick="salir()">Salir</button>
+    </div>
+    <div class="buscar">
+      <input id="q" type="search" placeholder="Buscar producto, marca o código…" autocomplete="off" aria-label="Buscar">
+      <button type="button" aria-label="Actualizar" onclick="cargar(true)" title="Actualizar">⟳</button>
+    </div>
+    <div class="filtros" role="group" aria-label="Filtrar por stock">
+      <button class="chip on" data-f="todos" type="button">Todos</button>
+      <button class="chip" data-f="hay" type="button">Con stock</button>
+      <button class="chip" data-f="bajo" type="button">Stock bajo</button>
+      <button class="chip" data-f="no" type="button">Sin stock</button>
+    </div>
+  </div>
+    <div class="aviso off oculto" id="avisoOff" role="status">📴 <span>Sin internet: mostrando los datos guardados en el celular.</span></div>
+  <div class="aviso nuevo oculto" id="avisoNuevo" role="status">✅ <span>Datos actualizados.</span></div>
+  <button class="instalar oculto" id="btnInstalar" type="button">📲 Instalar como app en el celular</button>
+  <div class="info" id="info"></div>
+  <div class="ayuda-wa">💬 Tocá <b>WhatsApp</b> para mandar un producto, o tocá varios productos con stock para mandarlos juntos.</div>
+  <ul class="lista" id="lista"></ul>
+  <div style="height:70px"></div>
+  <div class="barra-wa oculto" id="barraWa">
+    <button type="button" class="limpiar" onclick="limpiarSeleccion()">✕</button>
+    <button type="button" class="enviar" onclick="compartirSeleccion()" id="btnEnviarWa">Enviar por WhatsApp</button>
+  </div>
+</div>
+
+<script>
+  var datos = null, filtro = 'todos', claveActual = '';
+
+  function b64(s) { var b = atob(s), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; }
+  function gs(n) { return '₲ ' + Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function esc(t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function norm(t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+  async function descifrar(archivo, clave) {
+    var enc = new TextEncoder();
+    var base = await crypto.subtle.importKey('raw', enc.encode(clave), 'PBKDF2', false, ['deriveKey']);
+    var k = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: b64(archivo.sal), iterations: archivo.iter, hash: 'SHA-256' },
+      base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    var plano = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(archivo.iv) }, k, b64(archivo.datos));
+    return JSON.parse(new TextDecoder().decode(plano));
+  }
+
+    function avisos() {
+    document.getElementById('avisoOff').classList.toggle('oculto', navigator.onLine);
+  }
+
+  async function cargar(mostrarError) {
+    var archivo, anterior = datos ? datos.actualizado : null;
+    try {
+      var r = await fetch('datos.json?t=' + Date.now(), { cache: 'no-store' });
+      archivo = await r.json();
+      if (!r.ok || archivo.sinDatos) throw new Error('red');
+    } catch (e) {
+      // Sin internet y sin copia del service worker: usar la del celular
+      try { archivo = JSON.parse(localStorage.getItem('ssCacheStock') || 'null'); } catch (x) { archivo = null; }
+      if (!archivo) return false;
+    }
+    try {
+      datos = await descifrar(archivo, claveActual);
+    } catch (e) {
+      return 'clave';
+    }
+    document.getElementById('empresa').textContent = datos.empresa || 'Mi negocio';
+    document.getElementById('actualizado').textContent = (navigator.onLine ? 'Actualizado: ' : 'Sin internet · datos del ') + (datos.actualizado || '—');
+    try { localStorage.setItem('ssCacheStock', JSON.stringify(archivo)); } catch (e) {}
+    avisos();
+    if (anterior && datos.actualizado !== anterior) {
+      var n = document.getElementById('avisoNuevo'); n.classList.remove('oculto');
+      setTimeout(function () { n.classList.add('oculto'); }, 4000);
+    }
+    pintar();
+    return true;
+  }
+
+  function pintar() {
+    var q = norm(document.getElementById('q').value).trim();
+    var palabras = q.split(/\s+/).filter(Boolean);
+    var lista = (datos.productos || []).filter(function (p) {
+      if (filtro === 'hay' && !(p.s > 0)) return false;
+      if (filtro === 'bajo' && !(p.s > 0 && p.s <= 2)) return false;
+      if (filtro === 'no' && p.s > 0) return false;
+      if (!palabras.length) return true;
+      var t = norm([p.d, p.c, p.m, p.g].join(' '));
+      return palabras.every(function (w) { return t.indexOf(w) >= 0; });
+    });
+    var max = 300;
+    document.getElementById('info').textContent = lista.length + ' producto(s)' + (lista.length > max ? ' · mostrando los primeros ' + max : '');
+    document.getElementById('lista').innerHTML = lista.length ? lista.slice(0, max).map(function (p) {
+      var cls = p.s <= 0 ? 's-no' : (p.s <= 2 ? 's-bajo' : 's-ok');
+      var txt = p.s <= 0 ? 'Sin stock' : ('Stock: ' + p.s);
+      var det = [p.m, p.g, p.c].filter(Boolean).map(esc).join(' · ');
+      var k = claveProd(p), hay = p.s > 0, sel = hay && seleccion[k];
+      return '<li class="item' + (hay ? ' hay' : '') + (sel ? ' sel' : '') + '"' + (hay ? ' data-k="' + esc(k) + '"' : '') + '>' +
+        (hay ? '<span class="marca">✓</span>' : '') +
+        '<div style="min-width:0"><div class="n">' + esc(p.d) + '</div>' + (det ? '<div class="d">' + det + '</div>' : '') +
+        '</div><div class="der"><div class="precio">' + gs(p.p) + '</div><span class="stock ' + cls + '">' + txt + '</span>' +
+        (hay ? '<br><button type="button" class="wa" data-wa="' + esc(k) + '">💬 WhatsApp</button>' : '') + '</div></li>';
+    }).join('') : '<li class="vacio">No hay productos que coincidan.</li>';
+  }
+
+  // ---- Compartir por WhatsApp (solo productos con stock) ----
+  var seleccion = {};
+  function claveProd(p) { return (p.c || '') + '|' + (p.d || ''); }
+  function buscarProducto(k) {
+    var ps = (datos && datos.productos) || [];
+    for (var i = 0; i < ps.length; i++) if (claveProd(ps[i]) === k) return ps[i];
+    return null;
+  }
+  function textoProductos(ps) {
+    var empresa = (datos && datos.empresa) || '';
+    var t;
+    if (ps.length === 1) {
+      t = '*' + ps[0].d + '*\nPrecio: ' + gs(ps[0].p) + '\n✅ Disponible';
+    } else {
+      t = 'Productos disponibles:\n\n' + ps.map(function (p) { return '• *' + p.d + '* — ' + gs(p.p); }).join('\n');
+    }
+    if (empresa) t += '\n\n' + empresa;
+    return t;
+  }
+  function enviarWhatsapp(texto) {
+    window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+  }
+  function actualizarBarra() {
+    var n = Object.keys(seleccion).length;
+    document.getElementById('barraWa').classList.toggle('oculto', n === 0);
+    document.getElementById('btnEnviarWa').textContent = '💬 Enviar ' + n + ' producto' + (n === 1 ? '' : 's') + ' por WhatsApp';
+  }
+  function limpiarSeleccion() { seleccion = {}; actualizarBarra(); if (datos) pintar(); }
+  function compartirSeleccion() {
+    var ps = Object.keys(seleccion).map(buscarProducto).filter(function (p) { return p && p.s > 0; });
+    if (!ps.length) { limpiarSeleccion(); return; }
+    enviarWhatsapp(textoProductos(ps));
+  }
+  document.getElementById('lista').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-wa]');
+    if (b) {
+      e.stopPropagation();
+      var p = buscarProducto(b.getAttribute('data-wa'));
+      if (p && p.s > 0) enviarWhatsapp(textoProductos([p]));
+      return;
+    }
+    var li = e.target.closest('li.item.hay');
+    if (!li) return;
+    var k = li.getAttribute('data-k');
+    if (seleccion[k]) delete seleccion[k]; else seleccion[k] = true;
+    li.classList.toggle('sel', !!seleccion[k]);
+    actualizarBarra();
+  });
+
+  async function entrar(clave, recordar) {
+    claveActual = clave;
+    var btn = document.getElementById('btnEntrar'), err = document.getElementById('error');
+    btn.disabled = true; btn.textContent = 'Abriendo…'; err.textContent = '';
+        var r = await cargar(false);
+    btn.disabled = false; btn.textContent = 'Ver productos';
+    if (r === 'clave') { err.textContent = 'Contraseña incorrecta.'; try { localStorage.removeItem('ssClaveStock'); } catch (e) {} return; }
+        if (r !== true) { err.textContent = 'Todavía no hay datos guardados en este celular: abrila una vez con internet.'; return; }
+    try { if (recordar) localStorage.setItem('ssClaveStock', clave); else localStorage.removeItem('ssClaveStock'); } catch (e) {}
+    document.getElementById('pantallaLogin').classList.add('oculto');
+    document.getElementById('pantallaDatos').classList.remove('oculto');
+  }
+
+  function salir() {
+    try { localStorage.removeItem('ssClaveStock'); } catch (e) {}
+    datos = null; claveActual = '';
+    document.getElementById('clave').value = '';
+    document.getElementById('pantallaDatos').classList.add('oculto');
+    document.getElementById('pantallaLogin').classList.remove('oculto');
+  }
+
+  document.getElementById('formClave').addEventListener('submit', function (e) {
+    e.preventDefault();
+    entrar(document.getElementById('clave').value, document.getElementById('recordar').checked);
+  });
+  document.getElementById('q').addEventListener('input', function () { if (datos) pintar(); });
+  document.querySelectorAll('.chip').forEach(function (c) {
+    c.addEventListener('click', function () {
+      document.querySelectorAll('.chip').forEach(function (x) { x.classList.remove('on'); });
+      c.classList.add('on'); filtro = c.dataset.f; if (datos) pintar();
+    });
+  });
+    // ---- Actualización automática ----
+  // al volver a abrir la app, al volver internet y cada 3 minutos mientras está abierta
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && datos) cargar(false); });
+  window.addEventListener('online', function () { avisos(); if (datos) cargar(false); });
+  window.addEventListener('offline', function () { avisos(); if (datos) document.getElementById('actualizado').textContent = 'Sin internet · datos del ' + (datos.actualizado || '—'); });
+  setInterval(function () { if (datos && navigator.onLine && document.visibilityState === 'visible') cargar(false); }, 3 * 60 * 1000);
+
+  // ---- Funciona sin internet: guardar la página en el celular ----
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+  // ---- Botón "Instalar como app" (Chrome / Android) ----
+  var pedidoInstalar = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); pedidoInstalar = e;
+    document.getElementById('btnInstalar').classList.remove('oculto');
+  });
+  document.getElementById('btnInstalar').addEventListener('click', function () {
+    if (!pedidoInstalar) return;
+    pedidoInstalar.prompt();
+    pedidoInstalar.userChoice.finally(function () { pedidoInstalar = null; document.getElementById('btnInstalar').classList.add('oculto'); });
+  });
+  window.addEventListener('appinstalled', function () { document.getElementById('btnInstalar').classList.add('oculto'); });
+
+  if (!window.crypto || !crypto.subtle) {
+    document.getElementById('error').textContent = 'Este navegador es muy viejo para abrir la consulta. Probá con Chrome actualizado.';
+  } else {
+    try { var g = localStorage.getItem('ssClaveStock'); if (g) entrar(g, true); } catch (e) {}
+  }
+</script>
+</body>
+</html>
